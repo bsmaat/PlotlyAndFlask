@@ -9,52 +9,71 @@ import numpy as np
 app = Flask(__name__)
 app.debug = True
 
+import sqlite3
+import numpy as np
+import plotly
+from plotly import tools
+import plotly.graph_objs as go
+
+class SqlReader:
+
+    def getTemperature(self):
+        connection = sqlite3.connect('/home/pi/readings/data.db')
+        cursor = connection.cursor()
+
+        sql_command = """
+        SELECT * from  climate;"""
+
+        cursor.execute(sql_command)
+        result = cursor.fetchall()
+
+        cursor.close()
+        return result
+
 
 @app.route('/')
 def index():
-    rng = pd.date_range('1/1/2011', periods=7500, freq='H')
-    ts = pd.Series(np.random.randn(len(rng)), index=rng)
+    sql = SqlReader()
+    result = sql.getTemperature()
+
+    numOfPoints = len(result)
+
+    temperature = [yValues[1] for yValues in result]
+    humidity = [yValues[2] for yValues in result]
+    xValues = [xValues[0] for xValues in result]
+
 
     graphs = [
         dict(
             data=[
                 dict(
-                    x=[1, 2, 3],
-                    y=[10, 20, 30],
+                    x=xValues,
+                    y=temperature,
                     type='scatter'
                 ),
             ],
             layout=dict(
-                title='first graph'
+                title='Temperature vs Time'
             )
         ),
 
         dict(
             data=[
                 dict(
-                    x=[1, 3, 5],
-                    y=[10, 50, 30],
-                    type='bar'
+                    x=xValues,
+                    y=humidity,
+                    type='scatter'
                 ),
             ],
             layout=dict(
-                title='second graph'
+                title='Humidity vs Time'
             )
-        ),
-
-        dict(
-            data=[
-                dict(
-                    x=ts.index,  # Can use the pandas data structures directly
-                    y=ts
-                )
-            ]
         )
     ]
 
     # Add "ids" to each of the graphs to pass up to the client
     # for templating
-    ids = ['graph-{}'.format(i) for i, _ in enumerate(graphs)]
+    ids = ['Graph {}'.format(i) for i, _ in enumerate(graphs)]
 
     # Convert the figures to JSON
     # PlotlyJSONEncoder appropriately converts pandas, datetime, etc

@@ -10,3 +10,4 @@ $ python app.py
 ```
 
 ![screenshot of the graphs created with plotly and flask](http://i.imgur.com/vuYh4v6.png)
+# PlotlyAndFlask
